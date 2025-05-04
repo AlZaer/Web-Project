@@ -1,0 +1,72 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 20px 100px;
+    background: hsl(270, 50%, 40%, 0.7);
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    z-index: 99;
+}
+
+.navigation {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.navigation a {
+    color: white;
+    text-decoration: none;
+    position: relative;
+}
+
+.navigation a::after {
+    content: '';
+    position: absolute;
+    right: 0px;
+    bottom: -5px;
+    width: 100%;
+    height: 3px;
+    background: white;
+    border-radius: 5px;
+    transform-origin: right;
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.navigation a:hover::after {
+    transform-origin: left;
+    transform: scaleX(1);
+}
+
+
+.btnLogin-popup {
+    height: 50px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    border: 3px solid white;
+    border-radius: 30px;
+    background-color: rebeccapurple;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+    box-shadow: 0 0 2px #ddd;
+}
+
+.btnLogin-popup:hover {
+    background-color: white;
+    color: rebeccapurple;
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(196, 196, 196, 0.65);
+}

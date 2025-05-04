@@ -95,11 +95,21 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    overflow: hidden;
 }
 
 .wrapper .form-box {
     width: 100%;
     padding: 40px;
+}
+
+.form-box.login {
+    display: none;
+}
+
+.form-box.register {
+    position: absolute;
+    transform: translateX();
 }
 
 .form-box h2 {
@@ -200,4 +210,19 @@ body {
 
 .register-link:hover {
     text-decoration: underline;
+}
+
+.close-icon {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 45px;
+    height: 45px;
+    background-color: #152938;
+    font-size: 2.5em;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-bottom-left-radius: 20px;
 }

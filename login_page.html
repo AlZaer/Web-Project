@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="assets/logo.png">
+    <title>Login Page for Web Project</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <nav class="navigation">
+            <a href="#">About Me</a>
+            <!-- <button class="btnLogin-popup">Login</button> -->
+        </nav>
+    </header>
+
+    <div class="wrapper">
+        <!-- login form box -->
+        <div class="form-box login">
+            <h2>Login</h2>
+            <form id="login-form" action="/login" method="POST">
+                <!-- mail input -->
+                <div class="input-box">
+                    <span class="icon"><ion-icon name="mail-outline"></ion-icon></span>
+                    <input type="email" id="loginEmailInput" placeholder="Email" required>
+                    <!-- <label>Email</label> -->
+                </div>
+                <!-- password input -->
+                <div class="input-box">
+                    <span class="icon"><ion-icon name="lock-closed-outline"></ion-icon></span>
+                    <input type="password" id="LoginPasswordInput" placeholder="Password" required>
+                    <!-- <label>Password</label> -->
+                </div>
+                <!-- lower part -->
+                <a href="#" class="forgot-password">Forgot Password?!!!</a>
+                <button type="submit" class="btn" id="loginBtn">Login</button>
+                <div class="register">
+                    <p>First time? Here <a href="#" class="register-link">Register</a></p>
+                </div>
+            </form>
+        </div>
+
+        <!-- register form box -->
+        <div class="form-box register">
+            <h2>Registration</h2>
+            <form id="register-form" action="/register" method="POST">
+                <!-- name input -->
+                <div class="input-box">
+                    <span class="icon"><ion-icon name="person-outline"></ion-icon></span>
+                    <input type="text" id="registerUsernameInput" placeholder="Username" required>
+                    <!-- <label>Username</label> -->
+                </div>
+                <!-- mail input -->
+                <div class="input-box">
+                    <span class="icon"><ion-icon name="mail-outline"></ion-icon></span>
+                    <input type="email" id="registerEmailInput" placeholder="Email" required>
+                    <!-- <label>Email</label> -->
+                </div>
+                <!-- password input -->
+                <div class="input-box">
+                    <span class="icon"><ion-icon name="lock-closed-outline"></ion-icon></span>
+                    <input type="password" id="registerPasswordInput" placeholder="Password" required>
+                    <!-- <label>Password</label> -->
+                </div>
+                <!-- confriming password -->
+                <div class="input-box">
+                    <span class="icon"><ion-icon name="lock-closed-outline"></ion-icon></span>
+                    <input type="password" id="registerConfirmPasswordInput" placeholder="Confirm Password" required>
+                    <!-- <label>Confirm Password</label> -->
+                <!-- lower part -->
+                <button type="submit" class="btn" id="registerBtn">Create an Account</button>
+                <div class="register">
+                    <p>Remembered that you have an account? <a href="#" class="login-link">Login</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+<script src="javascript/script.js"></script>
+<script src="javascript/login.js"></script>
+<script src="javascript/register.js"></script>
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+</body>
+</html>

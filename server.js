@@ -3,115 +3,116 @@ const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcrypt');
 const { parse } = require('querystring');
+const { error } = require('console');
 
-const hostname = '127.0.0.1';
+const hostname = "127.0.0.1";
 const port = 3000;
 
 const server = http.createServer((req, res) => {
     //Login method
-    if (req.method === 'POST' && req.url === '/login') {
-        let body = '';
-        req.on('data', chunk => {
-            body += chunk.toString();
+    if (req.method === "POST" && req.url === "/login"){
+        let body = "";
+
+        req.on("data", chunk => {
+            body +=chunk.toString();
         });
 
-        req.on('end', () => {
-            const parsedData = parse(body);
-            const email = parsedData.email;
-            const password = parsedData.password;
+        req.on("end", () => {
+            const { email, password } = JSON.parse(body);
 
-            fs.readFile('accounts.json', 'utf8', (err, data) => {
+            fs.readFile("accounts.json", "utf8", (err, data) => {
                 if (err) {
-                    res.writeHead(500, { 'Content-Type': 'text/plain' });
-                    res.end('Error reading accounts file');
+                    res.writeHead(500, {'Content-Type':'application/json'});
+                    res.end(JSON.stringify({success: false, message: 'Error reading account file'}));
                     return;
                 }
 
                 let accounts = JSON.parse(data);
                 const user = accounts.find(u => u.email === email);
 
-                if (!user) {
-                    res.writeHead(401, { 'Content-Type': 'text/plain' });
-                    res.end('This email is not registered');
-                } else {
+                if(!user){
+                    res.writeHead(401, {'Content-Type':'application/json'});
+                    res.end(JSON.stringify({success: false, message: 'This email is not registered'}));
+                }
+                else{
                     bcrypt.compare(password, user.password, (err, result) => {
-                        if (result) {
-                            res.writeHead(302, {
-                                'Set-Cookie': `email=${encodeURIComponent(email)}; Max-Age=10; HttpOnly`,
-                                'Location': '/clipboard.html'
+                        if(result){
+                            res.writeHead(200, {
+                            'Set-Cookie': `email=${encodeURIComponent(email)}; Max-Age=10; HttpOnly`,
+                            'Content-Type': 'application/json'
                             });
-                            res.end();
-                        } else {
-                            res.writeHead(401, { 'Content-Type': 'text/plain' });
-                            res.end('Invalid password');
+                            res.end(JSON.stringify({ success: true }));
+                        }
+                        else{
+                            res.writeHead(401,{'Content-Type': 'application/json'});
+                            res.end(JSON.stringify({success: false, message: 'Invalid password'}));
                         }
                     });
                 }
             });
         });
-
         return;
     }
 
     //Register method
-    if (req.method === 'POST' && req.url === '/register') {
+    if(req.method === 'POST' && req.url === '/register'){
         let body = '';
+
         req.on('data', chunk => {
             body += chunk.toString();
         });
+
         req.on('end', () => {
-            const params = new URLSearchParams(body);
-            const username = params.get('username');
-            const email = params.get('email');
-            const password = params.get('password');
-            //const confirmPassword = params.get('confirm_password');
+            const {username, email, password} = JSON.parse(body);
 
-            console.log("🚀 Reading accounts.json from path:", __dirname + '/accounts.json');
-            if (!fs.existsSync('accounts.json')) {
-                console.log("accounts.json does not exist");
-            } else {
-                console.log("account.json file exists");
-            }
-            fs.readFile('accounts.json', 'utf8', (err, data) => {
-                if (err) {
-                    res.writeHead(500, { 'Content-Type': 'text/plain' });
-                    return res.end('Error reading accounts file');
+            fs.readFile('accounts.json','utf8',(err,data) => {
+                if(err && err.code !== 'ENOENT'){
+                    res.writeHead(500, {'Content-Type': 'application/json'});
+                    res.end(JSON.stringify({success: false, message: 'Server error reading accounts'}));
+                    return;
                 }
-
+                
                 let accounts = [];
-                try {
-                    accounts = JSON.parse(data);
-                } catch (e) {
-                    return res.end('Invalid accounts.json format');
+
+                if(data){
+                    try{
+                        accounts = JSON.parse(data);
+                    }
+                    catch(e){
+                        res.writeHead(500, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ success: false, message: 'Corrupted accounts file' }));
+                        return;
+                    }
                 }
 
-                const userExists = accounts.some(acc => acc.username === username || acc.email === email);
-                if (userExists) {
-                    res.writeHead(409, { 'Content-Type': 'text/plain' });
-                    return res.end('User already exists');
+                //ensuring the existing of the account
+                const existingUser = accounts.find(u => u.email === email);
+                if(existingUser){
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, message: 'Email already registered' }));
+                    return;
                 }
 
+                //encryption the password
                 bcrypt.hash(password, 10, (err, hashedPassword) => {
-                    if (err) {
-                        res.writeHead(500);
-                        return res.end('Error encrypting password');
+                    if(err){
+                        res.writeHead(500, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ success: false, message: 'Error encrypting password' }));
+                        return;
                     }
 
-                    const newUser = {
-                        username,
-                        email,
-                        password: hashedPassword
-                    };
+                    const newUser = {username, email, password: hashedPassword};
                     accounts.push(newUser);
 
-                    fs.writeFile('accounts.json', JSON.stringify(accounts, null, 2), (err) => {
-                        if (err) {
-                            res.writeHead(500);
-                            return res.end('Error saving user');
+                    fs.writeFile(`accounts.json`, JSON.stringify(accounts, null, 2), err => {
+                        if(err){
+                            res.writeHead(500, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify({ success: false, message: 'Failed to save account' }));
+                            return;
                         }
 
-                        res.writeHead(200, { 'Content-Type': 'text/plain' });
-                        res.end('User registered successfully!');
+                        res.writeHead(200, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ success: true }));
                     });
                 });
             });
@@ -119,30 +120,16 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-    //Logout method
-    if (req.method === 'GET' && req.url === '/logout') {
-        res.writeHead(302, {
-            'Set-Cookie': 'email=; Max-Age=0; HttpOnly',
-            'Location': '/'
-        });
-        res.end();
-        return;
-    }
-    // if (req.method === 'GET' && req.url === '/accounts.json') {
-    //     res.writeHead(403, { 'Content-Type': 'text/plain' });
-    //     res.end('Access denied');
-    //     return;
-    // }    
 
-    //Serve static files
+
+    //file datas
     let filePath = '.' + req.url;
-    if (filePath === './') {
-        filePath = './index.html';
+    if(filePath === './'){
+        filePath = './login_page.html';
     }
 
     const extname = String(path.extname(filePath)).toLowerCase();
     const mimeTypes = {
-        '.json': 'application/json',
         '.html': 'text/html',
         '.js': 'text/javascript',
         '.css': 'text/css',
@@ -156,21 +143,22 @@ const server = http.createServer((req, res) => {
 
     const contentType = mimeTypes[extname] || 'application/octet-stream';
 
-    // ✅ حماية صفحة clipboard.html باستخدام الكوكي
-    if (req.url === '/clipboard.html') {
+    //cookies
+    if(req.url === '/clipboard.html'){
         const cookies = req.headers.cookie?.split(';').reduce((acc, cookie) => {
             const [key, value] = cookie.trim().split('=');
             acc[key] = decodeURIComponent(value);
             return acc;
         }, {});
 
-        if (!cookies.email) {
-            res.writeHead(302, { 'Location': '/' }); // نعيده إلى الصفحة الرئيسية إن لم يسجل دخول
+        if(!cookies.email){
+            res.writeHead(302, {'location':'/'});
             res.end();
             return;
         }
-    }
+    };
 
+    //files read part
     fs.readFile(filePath, (error, content) => {
         if (error) {
             if (error.code == 'ENOENT') {
@@ -185,7 +173,7 @@ const server = http.createServer((req, res) => {
             res.end(content, 'utf-8');
         }
     });
-});
+})
 
 server.listen(port, hostname, () => {
     console.log(`Server running at http://${hostname}:${port}/`);

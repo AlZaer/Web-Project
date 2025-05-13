@@ -8,6 +8,7 @@ const hostname = '127.0.0.1';
 const port = 3000;
 
 const server = http.createServer((req, res) => {
+    //Login method
     if (req.method === 'POST' && req.url === '/login') {
         let body = '';
         req.on('data', chunk => {
@@ -22,7 +23,7 @@ const server = http.createServer((req, res) => {
             fs.readFile('accounts.json', 'utf8', (err, data) => {
                 if (err) {
                     res.writeHead(500, { 'Content-Type': 'text/plain' });
-                    res.end('خطأ في قراءة الحسابات');
+                    res.end('Error reading accounts file');
                     return;
                 }
 
@@ -31,15 +32,18 @@ const server = http.createServer((req, res) => {
 
                 if (!user) {
                     res.writeHead(401, { 'Content-Type': 'text/plain' });
-                    res.end('هذا المستخدم غير موجود');
+                    res.end('This email is not registered');
                 } else {
                     bcrypt.compare(password, user.password, (err, result) => {
                         if (result) {
-                            res.writeHead(302, { 'Location': '/clipboard.html' });
+                            res.writeHead(302, {
+                                'Set-Cookie': `email=${encodeURIComponent(email)}; Max-Age=10; HttpOnly`,
+                                'Location': '/clipboard.html'
+                            });
                             res.end();
                         } else {
                             res.writeHead(401, { 'Content-Type': 'text/plain' });
-                            res.end('كلمة المرور غير صحيحة');
+                            res.end('Invalid password');
                         }
                     });
                 }
@@ -49,6 +53,7 @@ const server = http.createServer((req, res) => {
         return;
     }
 
+    //Register method
     if (req.method === 'POST' && req.url === '/register') {
         let body = '';
         req.on('data', chunk => {
@@ -59,12 +64,13 @@ const server = http.createServer((req, res) => {
             const username = params.get('username');
             const email = params.get('email');
             const password = params.get('password');
+            //const confirmPassword = params.get('confirm_password');
 
             console.log("🚀 Reading accounts.json from path:", __dirname + '/accounts.json');
             if (!fs.existsSync('accounts.json')) {
-                console.log("❌ ملف accounts.json غير موجود!");
+                console.log("accounts.json does not exist");
             } else {
-                console.log("✅ ملف accounts.json موجود!");
+                console.log("account.json file exists");
             }
             fs.readFile('accounts.json', 'utf8', (err, data) => {
                 if (err) {
@@ -113,6 +119,22 @@ const server = http.createServer((req, res) => {
         return;
     }
 
+    //Logout method
+    if (req.method === 'GET' && req.url === '/logout') {
+        res.writeHead(302, {
+            'Set-Cookie': 'email=; Max-Age=0; HttpOnly',
+            'Location': '/'
+        });
+        res.end();
+        return;
+    }
+    // if (req.method === 'GET' && req.url === '/accounts.json') {
+    //     res.writeHead(403, { 'Content-Type': 'text/plain' });
+    //     res.end('Access denied');
+    //     return;
+    // }    
+
+    //Serve static files
     let filePath = '.' + req.url;
     if (filePath === './') {
         filePath = './index.html';
@@ -120,6 +142,7 @@ const server = http.createServer((req, res) => {
 
     const extname = String(path.extname(filePath)).toLowerCase();
     const mimeTypes = {
+        '.json': 'application/json',
         '.html': 'text/html',
         '.js': 'text/javascript',
         '.css': 'text/css',
@@ -132,6 +155,21 @@ const server = http.createServer((req, res) => {
     };
 
     const contentType = mimeTypes[extname] || 'application/octet-stream';
+
+    // ✅ حماية صفحة clipboard.html باستخدام الكوكي
+    if (req.url === '/clipboard.html') {
+        const cookies = req.headers.cookie?.split(';').reduce((acc, cookie) => {
+            const [key, value] = cookie.trim().split('=');
+            acc[key] = decodeURIComponent(value);
+            return acc;
+        }, {});
+
+        if (!cookies.email) {
+            res.writeHead(302, { 'Location': '/' }); // نعيده إلى الصفحة الرئيسية إن لم يسجل دخول
+            res.end();
+            return;
+        }
+    }
 
     fs.readFile(filePath, (error, content) => {
         if (error) {

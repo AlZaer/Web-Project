@@ -27,7 +27,7 @@ document.getElementById("register-form").addEventListener("submit", function(eve
         }
     })
     .catch(error => {
-        console.error("❌ خطأ في التسجيل:", error);
+        console.error("An error with registing:", error);
         alert("Something went wrong. Please try again later.");
     });
 });

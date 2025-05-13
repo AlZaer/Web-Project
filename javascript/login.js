@@ -4,7 +4,7 @@ document.getElementById("login-form").addEventListener("submit", function(event)
     const email = document.getElementById("loginEmailInput").value;
     const password = document.getElementById("LoginPasswordInput").value;
 
-    console.log("📤 إرسال:", email, password);
+    console.log("Sending data:", email, password);
 
     fetch("/login", {
         method: "POST",
@@ -13,7 +13,7 @@ document.getElementById("login-form").addEventListener("submit", function(event)
     })
     .then(response => response.json())
     .then(data => {
-        console.log("📥 استجابة:", data);
+        console.log("Responce", data);
         if (data.success) {
             window.location.href = "clipboard.html";
         } else {
@@ -21,7 +21,7 @@ document.getElementById("login-form").addEventListener("submit", function(event)
         }
     })
     .catch(error => {
-        console.error("❌ خطأ:", error);
-        alert("حدث خطأ في الاتصال بالخادم");
+        console.error("Error:", error);
+        alert("An error happened");
     });
 });
